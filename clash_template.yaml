@@ -1,0 +1,480 @@
+# =================================================================
+# 终极工业级纯净配置模板 clash_template.yaml (Sub-Store + Mihomo 专属版)
+# 转换来源: rule4.ini (1:1 完整复刻分流规则与策略组拓扑)
+# =================================================================
+
+mixed-port: 7890
+allow-lan: true
+bind-address: '*'
+mode: rule
+log-level: info
+ipv6: false
+unified-delay: true
+tcp-concurrent: true
+find-process-mode: off
+global-client-fingerprint: chrome
+
+# -----------------------------------------------------------------
+# [1. 节点提供者 - 对接本地 Sub-Store 自动合并与无损解析]
+# -----------------------------------------------------------------
+proxy-providers:
+  Merged:
+    type: http
+    url: "http://10.19.19.199:3001/download/collection/Merged?target=ClashMeta"
+    path: ./providers/merged.yaml
+    interval: 86400
+    health-check:
+      enable: true
+      url: "http://www.gstatic.com/generate_204"
+      interval: 300
+
+# -----------------------------------------------------------------
+# [2. 策略组依赖层 - 时序对齐: 前置跳板拓扑 -> 落地收容 -> 业务分流]
+# -----------------------------------------------------------------
+proxy-groups:
+  # 主路由入口
+  - name: 🚀 节点选择
+    type: select
+    proxies:
+      - ♻️ 全球自动
+      - 🐸 手动切换
+      - 🐷 廉价备用
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  # 【前置中转拓扑】：全自动吸纳所有国内 HTTP/免流/BGP 跳板，并提供直连备选
+  - name: 前置中转
+    type: select
+    proxies:
+      - DIRECT
+      - 跳板线路
+    use:
+      - Merged
+    filter: "(?i).*(移动|电信|联通|中转|入口|跳板|南京|广州|北京|上海|深圳|保定|苏州|BGP).*"
+
+  # 【跳板线路】：国内中转自动优选（绑定国内专属测速地址，避免外网测试误报断连）
+  - name: 跳板线路
+    type: url-test
+    use:
+      - Merged
+    filter: "(?i).*(移动|电信|联通|中转|入口|跳板|南京|广州|北京|上海|深圳|保定|苏州|BGP).*"
+    url: "http://connectivitycheck.platform.hicloud.com/generate_204"
+    interval: 300
+    tolerance: 100
+
+  # -----------------------------------------------------------------
+  # [3. 专属控制与备用收容层]
+  # -----------------------------------------------------------------
+
+  # 【全局手动中心】：全量展示主力 + 备用机场落地，智能剔除不能直接翻墙的国内跳板
+  - name: 🐸 手动切换
+    type: select
+    proxies:
+      - ♻️ 全球自动
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+    use:
+      - Merged
+    filter: "^(?!.*(移动|电信|联通|中转|入口|跳板|南京|广州|北京|上海|深圳|保定|苏州|BGP|Transit)).*$"
+
+  # 【谷歌统管中心】
+  - name: 🇬 谷歌专属
+    type: select
+    proxies:
+      - 🇺🇸 US 自动
+      - 🚀 节点选择
+      - ♻️ 全球自动
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+    use:
+      - Merged
+    filter: "^(?!.*(移动|电信|联通|中转|入口|跳板|南京|广州|北京|上海|深圳|保定|苏州|BGP|Transit)).*$"
+
+  # 【廉价/备用收容所】：捕获低倍率标识的节点
+  - name: 🐷 廉价备用
+    type: select
+    use:
+      - Merged
+    filter: "(?i)(^\[.*$|.*(x0\.|廉价|备用|Download).*)"
+
+  # -----------------------------------------------------------------
+  # [4. 业务精准分流层]
+  # -----------------------------------------------------------------
+  - name: 🎯 GoogleFCM
+    type: select
+    proxies:
+      - DIRECT
+      - 🇬 谷歌专属
+      - 🚀 节点选择
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+
+  - name: Gemini
+    type: select
+    proxies:
+      - 🇬 谷歌专属
+      - 🇺🇸 US 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - 🚀 节点选择
+      - DIRECT
+
+  - name: 🍀 Google
+    type: select
+    proxies:
+      - 🇬 谷歌专属
+      - 🚀 节点选择
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  - name: 📹 YouTube
+    type: select
+    proxies:
+      - 🇬 谷歌专属
+      - 🚀 节点选择
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  - name: Spotify
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🐸 手动切换
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  - name: 🔞 ExHentai
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🐸 手动切换
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇭🇰 HK 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  - name: 🐦 X
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🐸 手动切换
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  - name: 🎞️ Microsoft
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🐸 手动切换
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  - name: 💧 Copilot
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🐸 手动切换
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  - name: 🐬 OneDrive
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🐸 手动切换
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  - name: 📲 Telegram
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🐸 手动切换
+      - 🐷 廉价备用
+      - 🇸🇬 SG 自动
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇺🇸 US 自动
+      - DIRECT
+
+  - name: 🎵 TikTok
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🐸 手动切换
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  - name: 🐟 漏网之鱼
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - ♻️ 全球自动
+      - 🐸 手动切换
+      - 🇭🇰 HK 自动
+      - 🇯🇵 JP 自动
+      - 🇸🇬 SG 自动
+      - 🇺🇸 US 自动
+      - 🇹🇼 TW 自动
+      - 🇰🇷 KR 自动
+      - DIRECT
+
+  # -----------------------------------------------------------------
+  # [5. 区域自动优选池 - 强力排除廉价备用与跳板，保持纯净测速]
+  # -----------------------------------------------------------------
+  - name: ♻️ 全球自动
+    type: url-test
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    use:
+      - Merged
+    filter: "^(?!\[)(?!.*(测试|俄罗斯|缅甸|越南|南极|下载|移动|电信|联通|中转|入口|跳板|BGP)).*$"
+
+  - name: 🇭🇰 HK 自动
+    type: url-test
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    use:
+      - Merged
+    filter: "^(?!\[)(?=.*(香港|HK|Hong Kong|HongKong|🇭🇰))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+
+  - name: 🇯🇵 JP 自动
+    type: url-test
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    use:
+      - Merged
+    filter: "^(?!\[)(?=.*(日本|川日|东京|大阪|泉日|埼玉|沪日|深日|JP|Japan|Tokyo|Osaka|🇯🇵))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+
+  - name: 🇺🇸 US 自动
+    type: url-test
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    use:
+      - Merged
+    filter: "^(?!\[)(?=.*(美|美国|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|United States|(?<![a-zA-Z])US(?![a-zA-Z])|(?<![a-zA-Z])USA(?![a-zA-Z])|🇺🇸))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+
+  - name: 🇸🇬 SG 自动
+    type: url-test
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    use:
+      - Merged
+    filter: "^(?!\[)(?=.*(新加坡|坡|狮城|SG|Singapore|🇸🇬))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+
+  - name: 🇹🇼 TW 自动
+    type: url-test
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    use:
+      - Merged
+    filter: "^(?!\[)(?=.*(台|新北|彰化|台中|台北|TW|Taiwan|Taipei|🇹🇼))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+
+  - name: 🇰🇷 KR 自动
+    type: url-test
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    use:
+      - Merged
+    filter: "^(?!\[)(?=.*(KR|Korea|KOR|首尔|韩|韓|🇰🇷))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+
+  # -----------------------------------------------------------------
+  # [6. 基础直连与广告拦截]
+  # -----------------------------------------------------------------
+  - name: 🎯 全球直连
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 节点选择
+      - 🐸 手动切换
+
+  - name: 🛑 广告拦截
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+
+# -----------------------------------------------------------------
+# [7. 规则提供者 - 带本地持久化缓存容灾]
+# -----------------------------------------------------------------
+rule-providers:
+  direct_custom:
+    type: http
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/iwakuralain451/rule/refs/heads/main/direct.ini"
+    path: ./ruleset/direct_custom.txt
+    interval: 86400
+
+  ms_direct_custom:
+    type: http
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/iwakuralain451/rule/refs/heads/main/ms_direct.ini"
+    path: ./ruleset/ms_direct_custom.txt
+    interval: 86400
+
+  gemini_custom:
+    type: http
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/iwakuralain451/rule/refs/heads/main/Gemini.ini"
+    path: ./ruleset/gemini_custom.txt
+    interval: 86400
+
+  exhentai_custom:
+    type: http
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/iwakuralain451/rule/refs/heads/main/ExHentai.ini"
+    path: ./ruleset/exhentai_custom.txt
+    interval: 86400
+
+  copilot_custom:
+    type: http
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/iwakuralain451/rule/refs/heads/main/Copilot.ini"
+    path: ./ruleset/copilot_custom.txt
+    interval: 86400
+
+# -----------------------------------------------------------------
+# [8. 分流规则列表 - 严格按照原 rule4.ini 优先级编排]
+# -----------------------------------------------------------------
+rules:
+  # 【底层链路保护】免流中转与落地服务器直连，防止代理环路
+  - DOMAIN,down.dingtalk.com,DIRECT
+  - DOMAIN,saas.sin.fan,DIRECT
+  - DOMAIN-SUFFIX,6rguyesfdhvbz.uk,DIRECT
+
+  # 【体验优化】阻断 QUIC/HTTP3，避免 UDP 443 运营商 QoS 限速卡顿
+  - AND,((NETWORK,UDP),(DST-PORT,443)),REJECT
+
+  # 广告拦截
+  - GEOSITE,category-ads-all,🛑 广告拦截
+
+  # 局域网直连
+  - GEOIP,LAN,🎯 全球直连,no-resolve
+
+  # 用户自定义直连规则 (direct.ini, ms_direct.ini)
+  - RULE-SET,direct_custom,🎯 全球直连
+  - RULE-SET,ms_direct_custom,🎯 全球直连
+
+  # Gemini 专用
+  - RULE-SET,gemini_custom,Gemini
+
+  # Spotify
+  - GEOSITE,spotify,Spotify
+
+  # ExHentai
+  - RULE-SET,exhentai_custom,🔞 ExHentai
+
+  # Google FCM 消息推送
+  - DOMAIN-SUFFIX,mtalk.google.com,🎯 GoogleFCM
+  - DOMAIN-KEYWORD,mtalk.google,🎯 GoogleFCM
+
+  # 特殊节点选择
+  - DOMAIN-SUFFIX,xn--ngstr-lra8j.com,🚀 节点选择
+  - DOMAIN-SUFFIX,services.googleapis.cn,🚀 节点选择
+
+  # X (Twitter) & Grok
+  - GEOSITE,twitter,🐦 X
+  - GEOSITE,xai,🐦 X
+  - DOMAIN-SUFFIX,grok.com,🐦 X
+  - DOMAIN-KEYWORD,grok,🐦 X
+
+  # Copilot & Bing
+  - GEOSITE,bing,💧 Copilot
+  - RULE-SET,copilot_custom,💧 Copilot
+
+  # 开发与微软服务
+  - GEOSITE,github,🚀 节点选择
+  - GEOSITE,microsoft,🎞️ Microsoft
+  - GEOSITE,google,🍀 Google
+  - GEOSITE,onedrive,🐬 OneDrive
+
+  # Telegram
+  - GEOSITE,telegram,📲 Telegram
+  - GEOIP,telegram,📲 Telegram,no-resolve
+
+  # 影音与社交流媒体
+  - GEOSITE,youtube,📹 YouTube
+  - GEOSITE,tiktok,🎵 TikTok
+
+  # GFW 列表
+  - GEOSITE,gfw,🚀 节点选择
+
+  # 国内直连 (GeoSite CN, GeoIP CN)
+  - GEOSITE,cn,🎯 全球直连
+  - GEOIP,cn,🎯 全球直连,no-resolve
+
+  # 兜底规则
+  - MATCH,🐟 漏网之鱼
