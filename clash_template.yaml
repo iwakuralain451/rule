@@ -11,8 +11,7 @@ log-level: info
 ipv6: false
 unified-delay: true
 tcp-concurrent: true
-find-process-mode: off
-global-client-fingerprint: chrome
+
 
 # -----------------------------------------------------------------
 # [1. 节点提供者 - 对接本地 Sub-Store 自动合并与无损解析]
@@ -109,7 +108,7 @@ proxy-groups:
     type: select
     use:
       - Merged
-    filter: "(?i)(^\[.*$|.*(x0\.|廉价|备用|Download).*)"
+    filter: '(?i)(^\[.*$|.*(x0\.|廉价|备用|Download).*)'
 
   # -----------------------------------------------------------------
   # [4. 业务精准分流层]
@@ -290,7 +289,7 @@ proxy-groups:
     tolerance: 50
     use:
       - Merged
-    filter: "^(?!\[)(?!.*(测试|俄罗斯|缅甸|越南|南极|下载|移动|电信|联通|中转|入口|跳板|BGP)).*$"
+    filter: '^(?!\[)(?!.*(测试|俄罗斯|缅甸|越南|南极|下载|移动|电信|联通|中转|入口|跳板|BGP)).*$'
 
   - name: 🇭🇰 HK 自动
     type: url-test
@@ -299,7 +298,7 @@ proxy-groups:
     tolerance: 50
     use:
       - Merged
-    filter: "^(?!\[)(?=.*(香港|HK|Hong Kong|HongKong|🇭🇰))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+    filter: '^(?!\[)(?=.*(香港|HK|Hong Kong|HongKong|🇭🇰))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$'
 
   - name: 🇯🇵 JP 自动
     type: url-test
@@ -308,7 +307,7 @@ proxy-groups:
     tolerance: 50
     use:
       - Merged
-    filter: "^(?!\[)(?=.*(日本|川日|东京|大阪|泉日|埼玉|沪日|深日|JP|Japan|Tokyo|Osaka|🇯🇵))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+    filter: '^(?!\[)(?=.*(日本|川日|东京|大阪|泉日|埼玉|沪日|深日|JP|Japan|Tokyo|Osaka|🇯🇵))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$'
 
   - name: 🇺🇸 US 自动
     type: url-test
@@ -317,7 +316,7 @@ proxy-groups:
     tolerance: 50
     use:
       - Merged
-    filter: "^(?!\[)(?=.*(美|美国|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|United States|(?<![a-zA-Z])US(?![a-zA-Z])|(?<![a-zA-Z])USA(?![a-zA-Z])|🇺🇸))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+    filter: '^(?!\[)(?=.*(美|美国|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|United States|(?<![a-zA-Z])US(?![a-zA-Z])|(?<![a-zA-Z])USA(?![a-zA-Z])|🇺🇸))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$'
 
   - name: 🇸🇬 SG 自动
     type: url-test
@@ -326,7 +325,7 @@ proxy-groups:
     tolerance: 50
     use:
       - Merged
-    filter: "^(?!\[)(?=.*(新加坡|坡|狮城|SG|Singapore|🇸🇬))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+    filter: '^(?!\[)(?=.*(新加坡|坡|狮城|SG|Singapore|🇸🇬))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$'
 
   - name: 🇹🇼 TW 自动
     type: url-test
@@ -335,7 +334,7 @@ proxy-groups:
     tolerance: 50
     use:
       - Merged
-    filter: "^(?!\[)(?=.*(台|新北|彰化|台中|台北|TW|Taiwan|Taipei|🇹🇼))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+    filter: '^(?!\[)(?=.*(台|新北|彰化|台中|台北|TW|Taiwan|Taipei|🇹🇼))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$'
 
   - name: 🇰🇷 KR 自动
     type: url-test
@@ -344,7 +343,7 @@ proxy-groups:
     tolerance: 50
     use:
       - Merged
-    filter: "^(?!\[)(?=.*(KR|Korea|KOR|首尔|韩|韓|🇰🇷))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$"
+    filter: '^(?!\[)(?=.*(KR|Korea|KOR|首尔|韩|韓|🇰🇷))(?!.*(下载|移动|电信|联通|中转|入口|跳板)).*$'
 
   # -----------------------------------------------------------------
   # [6. 基础直连与广告拦截]
