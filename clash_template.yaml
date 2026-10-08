@@ -22,6 +22,7 @@ proxy-providers:
     url: "http://10.19.19.199:3001/download/collection/Merged?target=ClashMeta"
     path: ./providers/merged.yaml
     interval: 86400
+    exclude-filter: '(?i)(免费|Free|剩余|重置|到期|过期|官网|通知|提示|维护|客服|群|推荐|如果看不到|更换客户端|Traffic|Expire|Reset|Channel|Telegram|Notice|Valid|Website)'
     health-check:
       enable: true
       url: "http://www.gstatic.com/generate_204"
