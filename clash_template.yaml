@@ -424,10 +424,6 @@ rules:
   # 用户自定义直连规则 (direct.ini, ms_direct.ini)
   - RULE-SET,direct_custom,🎯 全球直连
   - RULE-SET,ms_direct_custom,🎯 全球直连
-  # Windows 推送通知服务 (WNS) 与跨设备推送通道直连（不影响 Bing / Copilot 区域判定）
-  - DOMAIN-SUFFIX,wns.windows.com,🎯 全球直连
-  - DOMAIN-SUFFIX,notify.windows.com,🎯 全球直连
-  - DOMAIN-SUFFIX,servicebus.windows.net,🎯 全球直连
 
   # Gemini 专用
   - RULE-SET,gemini_custom,Gemini
